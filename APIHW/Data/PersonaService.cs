@@ -36,13 +36,11 @@ namespace APIHW.Data
             persona.Edad = personaupdt.Edad;
             persona.Distrito = personaupdt.Distrito;
 
-            await _context.SaveChangesAsync();
             return await _context.Personas.ToListAsync();
         }
         public async Task<List<Persona>> BorrarPersona(Persona personadel)
         {
             personadel.Active = false;
-            await _context.SaveChangesAsync();
             return await _context.Personas.ToListAsync();
         }
         public async Task<List<Persona>> ObtenerPersonasPorEquipo(int id)

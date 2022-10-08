@@ -6,15 +6,15 @@ namespace APIHW.Controllers
 {
     public class EquipoController : ControllerBase
     {
-        private readonly IEquipoService _service;
-        public EquipoController(IEquipoService service)
+        private readonly IUnitOfWork _uow;
+        public EquipoController(IUnitOfWork uow)
         {
-            _service = service;
+            _uow = uow;
         }
         [HttpGet("BuscarEquipo")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var equipo = await _service.ObtenerEntidad(id);
+            var equipo = await _uow.EquipoService.ObtenerEntidad(id);
             if (equipo == null)
             {
                 return BadRequest("Equipo no encontrado");
@@ -24,7 +24,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerTodosEquipos")]
         public async Task<IActionResult> GetAll()
         {
-            var equipos = await _service.ObtenerTodoEntidades();
+            var equipos = await _uow.EquipoService.ObtenerTodoEntidades();
             if (equipos == null)
             {
                 return BadRequest("No hay Equipos");
@@ -34,7 +34,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerEquipos")]
         public async Task<IActionResult> Get()
         {
-            var equipos = await _service.ObtenerEntidades();
+            var equipos = await _uow.EquipoService.ObtenerEntidades();
             if (equipos == null)
             {
                 return BadRequest("No hay Equipos Activos");
@@ -44,28 +44,41 @@ namespace APIHW.Controllers
         [HttpPost("AgregarEquipo")]
         public async Task<IActionResult> AgregarEquipo(EquipoDTO eq)
         {
-            return Ok(await _service.AgregarEquipo(eq));
+            await _uow.EquipoService.AgregarEquipo(eq);
+            await _uow.SaveAsync();
+            return Ok(await _uow.EquipoService.ObtenerEntidades());
         }
         [HttpPut("ActualizarEquipo")]
         public async Task<IActionResult> ActualizarEquipos(int id, EquipoDTO equiupdt)
         {
-            var equipo = await _service.ObtenerEntidad(id);
+            var equipo = await _uow.EquipoService.ObtenerEntidad(id);
             if (equipo == null)
             {
                 return BadRequest("Equipo no encontrado");
             }
-            await _service.ActualizarEquipo(equipo, equiupdt);
-            return Ok(await _service.ObtenerEntidades());
+            else if (!equipo.Active)
+            {
+                return BadRequest("Equipo no activo");
+            }
+            await _uow.EquipoService.ActualizarEquipo(equipo, equiupdt);
+            await _uow.SaveAsync();
+            return Ok(await _uow.EquipoService.ObtenerEntidades());
         }
         [HttpDelete("BorrarEquipo")]
         public async Task<IActionResult> BorrarEquipo(int id)
         {
-            var equidel = await _service.ObtenerEntidad(id);
+            var equidel = await _uow.EquipoService.ObtenerEntidad(id);
             if (equidel == null)
             {
-                return BadRequest("Persona no encontrada");
+                return BadRequest("Equipo no encontrado");
             }
-            return Ok(await _service.BorrarEquipo(equidel));
+            else if (!equidel.Active)
+            {
+                return BadRequest("Equipo no activo");
+            }
+            await _uow.EquipoService.BorrarEquipo(equidel);
+            await _uow.SaveAsync();
+            return Ok(await _uow.EquipoService.ObtenerEntidades());
         }
     }
 }

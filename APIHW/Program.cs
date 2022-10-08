@@ -11,8 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IPersonaService, PersonaService>();
-builder.Services.AddScoped<IEquipoService, EquipoService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+//builder.Services.AddScoped<IEquipoService, EquipoService>();
 
 var app = builder.Build();
 

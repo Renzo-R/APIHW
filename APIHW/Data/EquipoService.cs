@@ -15,7 +15,6 @@ namespace APIHW.Data
             equi.Descripcion = equiupdt.Descripcion;
             equi.Color = equiupdt.Color;
 
-            await _context.SaveChangesAsync();
             return await _context.Equipos.ToListAsync();
         }
 
@@ -42,7 +41,6 @@ namespace APIHW.Data
                     p.Active = false;
                 }
             }
-            await _context.SaveChangesAsync();
             return await _context.Equipos.ToListAsync();
         }
     }

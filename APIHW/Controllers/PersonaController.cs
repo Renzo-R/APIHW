@@ -8,25 +8,25 @@ namespace APIHW.Controllers
     [ApiController]
     public class PersonaController : ControllerBase
     {
-        private readonly IPersonaService _service;
-        public PersonaController(IPersonaService service)
+        private readonly IUnitOfWork _uow;
+        public PersonaController(IUnitOfWork uow)
         {
-            _service = service;
+            _uow = uow;
         }
         [HttpGet("BuscarPersona")]
         public async Task<IActionResult> GetById(int id)
         {
-            var persona = await _service.ObtenerEntidad(id);
+            var persona = await _uow.PersonaService.ObtenerEntidad(id);
             if (persona == null)
             {
-                return BadRequest("Persona no encontrado");
+                return BadRequest("Persona no encontrada");
             }
             return Ok(persona);
         }
         [HttpGet("ObtenerTodasPersonas")]
         public async Task<IActionResult> GetAll()
         {
-            var personas = await _service.ObtenerTodoEntidades();
+            var personas = await _uow.PersonaService.ObtenerTodoEntidades();
             if (personas == null)
             {
                 return BadRequest("No hay Personas");
@@ -36,7 +36,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerPersonas")]
         public async Task<IActionResult> Get()
         {
-            var personas = await _service.ObtenerEntidades();
+            var personas = await _uow.PersonaService.ObtenerEntidades();
             if (personas == null)
             {
                 return BadRequest("No hay Personas Activas");
@@ -46,38 +46,42 @@ namespace APIHW.Controllers
         [HttpPost("AgregarPersona")]
         public async Task<IActionResult> AgregarPersona(PersonaDTO p)
         {
-            var personas = await _service.AgregarPersona(p);
+            var personas = await _uow.PersonaService.AgregarPersona(p);
             if (personas == null)
             {
-                return BadRequest("Equipo al que desea agregar persona no existe o no está activo");
+                return BadRequest("Equipo al que desea agregar persona no existe o no esta activo");
             }
-            else return Ok(personas);
+            await _uow.SaveAsync();
+            return Ok(await _uow.PersonaService.ObtenerEntidades());
         }
         [HttpPut("ActualizarPersona")]
         public async Task<IActionResult> ActualizarPersona(int id, PersonaDTO personaupdt)
         {
-            var persona = await _service.ObtenerEntidad(id);
-            if (persona == null)
+            var persona = await _uow.PersonaService.ObtenerEntidad(id);
+            if (persona == null || !persona.Active)
             {
-                return BadRequest("Persona no encontrada");
+                return BadRequest("Persona no encontrada o no activa");
             }
-            await _service.ActualizarPersona(persona, personaupdt);
-            return Ok(await _service.ObtenerEntidades());
+            await _uow.PersonaService.ActualizarPersona(persona, personaupdt);
+            await _uow.SaveAsync();
+            return Ok(await _uow.PersonaService.ObtenerEntidades());
         }
         [HttpDelete("BorrarPersona")]
         public async Task<IActionResult> BorrarPersona(int id)
         {
-            var personadel = await _service.ObtenerEntidad(id);
-            if (personadel == null)
+            var personadel = await _uow.PersonaService.ObtenerEntidad(id);
+            if (personadel == null || !personadel.Active)
             {
-                return BadRequest("Persona no encontrada");
+                return BadRequest("Persona no encontradao no activa");
             }
-            return Ok(await _service.BorrarPersona(personadel));
+            await _uow.PersonaService.BorrarPersona(personadel);
+            await _uow.SaveAsync();
+            return Ok(await _uow.PersonaService.ObtenerEntidades());
         }
         [HttpGet("ObtenerPersonasPorIdEquipo")]
         public async Task<IActionResult> GetPersonasPorIdEquipo(int id)
         {
-            var personas = await _service.ObtenerPersonasPorEquipo(id);
+            var personas = await _uow.PersonaService.ObtenerPersonasPorEquipo(id);
             if (personas == null)
             {
                 return BadRequest("El equipo a consultar no existe");
@@ -91,7 +95,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerPersonasPorColor")]
         public async Task<IActionResult> GetPersonasPorColor(string color)
         {
-            var personas = await _service.ObtenerPersonasPorColor(color);
+            var personas = await _uow.PersonaService.ObtenerPersonasPorColor(color);
             if (personas == null)
             {
                 return BadRequest("El color a consultar no existe");
@@ -105,7 +109,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerPersonasPorDistrito")]
         public async Task<IActionResult> GetPersonasPorDistrito(string distrito)
         {
-            var personas = await _service.ObtenerPersonasPorDistrito(distrito);
+            var personas = await _uow.PersonaService.ObtenerPersonasPorDistrito(distrito);
             if (personas == null)
             {
                 return BadRequest("El distrito a consultar no existe");
@@ -119,7 +123,7 @@ namespace APIHW.Controllers
         [HttpGet("ObtenerPersonasEdadDescendente")]
         public async Task<IActionResult> GetPersonasEdadDescendente()
         {
-            var personas = await _service.ObtenerPersonasEdadDescendente();
+            var personas = await _uow.PersonaService.ObtenerPersonasEdadDescendente();
             if (personas.Count == 0)
             {
                 return BadRequest("No hay Personas Activas o no se han agregado");
